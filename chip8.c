@@ -1,31 +1,54 @@
-#ifndef CHIP8_H
-#define CHIP8_H
+#include <stdio.h>
+#include "chip8.h"
 
-#include <stdint.h>
+#define START_ADDR 0x200 // 512
 
-#define MEMORY_SIZE 4096
-#define SCREEN_HEIGHT 32
-#define SCREEN_WIDTH 64
+// symbol
+// int-> instruction operation
+// x,y->placeholder for register
+// kk -> 2 hex digits->8bit values (immidaite byte value)
+// n -> 4 bit number
+//  nnn -> memory address ->12bits
 
-typedef struct
+// each instruction is 2byte long with 4 bits of each instruction with is 
+// opcode register value value
+
+
+void load_rom(const char *file_pt, Chip8 *chip)
 {
-    uint8_t mem[MEMORY_SIZE]; // from location 0x000 (0) to 0xFFF (4095).
-    uint8_t Vx[16];           // 16 general purpose reg's->x placeholder for 0 to F(15) in hex16
+    // load file from 512 though doc says some start from 1536 but we'll see later
 
-    // pesudo registers
-    uint16_t I;  // Index register used to store memory address
-    uint16_t pc; // program counter used to store currectly execution address
+    FILE *rom_file = fopen(file_pt, "rb");
 
-    uint16_t stack[16]; // used to store the address that the interpreter shoud return when subroutine is finised wtf?
-    uint8_t stack_ptr;  // stack pointer->topmost level of stack
+    if (get_file_size(file_pt) > (MEMORY_SIZE - START_ADDR))
+    {
+        printf("File is bigger than %d bits\n", (MEMORY_SIZE - START_ADDR));
+        return;
+    }
 
-    // two special registers->
-    uint8_t timer;
-    uint8_t sound;
+    //we read 2 bytes idk how
 
-    // raylib to display later
-    uint8_t display[SCREEN_HEIGHT * SCREEN_WIDTH]; // size of screen total 1984: two states 1-> on, 0-> off
+}
 
-} Chip8;
+long get_file_size(const char *file_pt)
+{
 
-#endif
+    FILE *file = fopen(file_pt, "rb");
+
+    if (file != NULL)
+    {
+        printf("Error opening file\n");
+        return -1;
+    }
+    long int offset = 0;
+
+    if (fseek(file_pt, offset, SEEK_END) != -1) // move seeker to last
+    {
+        printf("Error in mving file pointer");
+        return -1;
+    }
+
+    long size_of_file = ftell(file_pt);
+
+    return size_of_file;
+}
