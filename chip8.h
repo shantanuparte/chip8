@@ -29,8 +29,8 @@ typedef struct
 
 } Chip8;
 
-void chip8_init();
+void chip8_init(Chip8 *chip);
 void load_rom(const char *file_pt, Chip8 *chip);//use const char * instead of FILE *. as it more safe in some way
-long get_file_size(const char *file_pt);
+
 
 #endif
