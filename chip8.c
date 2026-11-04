@@ -64,10 +64,15 @@ void chip8_cycle(Chip8 *chip)
     switch (opcode & 0xF000)
     {
     case 0:
-        if (condition)
+        if (opcode == 0x00E0)
         {
-            /* code */
+            memset(chip->display, 0, sizeof(chip->display));
+            chip->draw_flag = true;
         }
+        else
+        {
+        }
+        break;
 
         break;
 
