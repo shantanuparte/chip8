@@ -44,7 +44,34 @@ void load_rom(const char *file_pt, Chip8 *chip)
 
 void chip8_init(Chip8 *chip)
 {
-    memset(chip, 0, sizeof(*chip));//use *chip to deference or it'll size the pointer
-    
+    memset(chip, 0, sizeof(*chip)); // use *chip to deference or it'll size the pointer
+
     chip->pc = START_ADDR; // pc should start here
+}
+
+void chip8_cycle(Chip8 *chip)
+{
+
+    uint16_t opcode = ((chip->mem[chip->pc] << 8) | chip->mem[chip->pc + 1]); // vacant bits are 0
+    chip->pc += 2;
+
+    uint8_t x = ((opcode >> 8) & 0x0F); // each 0 adds 4 0's in end os hex
+    uint8_t y = ((opcode >> 4) & 0x00F0);
+    uint8_t n = opcode & 0x000F;
+    uint8_t nn = opcode & 0x00FF;
+    uint16_t nnn = opcode & 0x0FFF;
+
+    switch (opcode & 0xF000)
+    {
+    case 0:
+        if (condition)
+        {
+            /* code */
+        }
+
+        break;
+
+    default:
+        break;
+    }
 }

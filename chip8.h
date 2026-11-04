@@ -26,11 +26,13 @@ typedef struct
 
     // raylib to display later
     uint8_t display[SCREEN_HEIGHT * SCREEN_WIDTH]; // size of screen total 1984: two states 1-> on, 0-> off
+    uint8_t keypad[16];
+    bool draw_flag;
 
 } Chip8;
 
 void chip8_init(Chip8 *chip);
-void load_rom(const char *file_pt, Chip8 *chip);//use const char * instead of FILE *. as it more safe in some way
-
+void load_rom(const char *file_pt, Chip8 *chip); // use const char * instead of FILE *. as it more safe in some way
+void chip8_cycle();
 
 #endif
