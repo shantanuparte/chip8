@@ -15,23 +15,25 @@ int main()
 
     while (!WindowShouldClose())
     {
-        // for (int z = 0; z < 10; z++)
-        // {
-        //     //have to run this for 60Hz -> 60 x 10 is 600 instructions per seconds
-        //     chip8_cycle(&chip);
-        // }
+        for (int z = 0; z < 10; z++)
+        {
+            //have to run this for 60Hz -> 60 x 10 is 600 instructions per seconds
+            chip8_cycle(&chip);
+        }
 
-        DrawText("Hello From chip8!", 247, 150, 20, GREEN);
+        // DrawText("Hello From chip8!", 247, 150, 20, GREEN);
 
         BeginDrawing();
 
         draw_screen(&chip);
-
+        
         EndDrawing();
     }
 
     CloseWindow();
     return 0;
 }
+
+
 
 

@@ -37,3 +37,4 @@ void chip8_cycle(Chip8 *chip);
 void clear_scr(Chip8 *chip);
 
 #endif
+

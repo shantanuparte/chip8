@@ -63,7 +63,7 @@ void chip8_cycle(Chip8 *chip)
 
     switch (opcode & 0xF000)
     {
-    case 0:
+    case 0x0000:
         if (opcode == 0x00E0)
         {
             clear_scr(chip);
@@ -74,48 +74,75 @@ void chip8_cycle(Chip8 *chip)
         }
         break;
 
-    case 1:
+    case 0x1000:
         // 1nnn - JP addr
-        //Jump to location nnn.set pc to nnn
+        // Jump to location nnn.set pc to nnn
         chip->pc = nnn;
         break;
-        
-    case 6:
+
+    case 0x6000:
         //  6XNN (Vx[x] = nn).
         chip->Vx[x] = nn;
-    case 0xA: //10nnn
-    //  ANNN (I = nnn).
+    case 0xA000: // 10nnn
+        //  ANNN (I = nnn).
         chip->I = nnn;
 
-    case 7:
-    // 7xkk - ADD Vx, byte
-    // Set Vx = Vx + kk.
-    chip->Vx[x] += nn;
-    
-    case 0xD:
-        uint16_t idk = chip->I;
-        //disply idk on Vx[x], Vy[y]
-            
-        
+    case 0x7000:
+        // 7xkk - ADD Vx, byte
+        // Set Vx = Vx + kk.
+        chip->Vx[x] += nn;
+
+    case 0xD000: 
+    {
+        uint8_t x_coord = chip->Vx[x] ;  
+        uint8_t y_coord = chip->Vx[y] ;
+
+        //collision flag is F'th register
+        chip->Vx[0xF] = 0; // clear collision flag
+
+        for (int row = 0; row < n; row++)
+        {
+            if (y_coord + row >= SCREEN_HEIGHT)
+                break; // clip at bottom edge
+
+            uint8_t sprite_byte = chip->mem[chip->I + row]; // read from memory
+
+            for (int y = 0; y < 8; y++)
+            {
+                if (x_coord + y >= SCREEN_WIDTH)
+                    break; // clip at right edge
+
+                if (sprite_byte & (0x80 >> y)) //get the bit though biwise operation
+                {
+                    int index = (y_coord + row) * SCREEN_WIDTH + (x_coord + y);
+
+                    if (chip->display[index]) // pixel already on -> collision
+                        chip->Vx[0xF] = 1;
+
+                    chip->display[index] ^= 1; //  XOR onto the display
+                }
+            }
+        }
+
+        chip->draw_flag = true;
+        break;
+    }
 
     default:
-    break;
-}
+        break;
+    }
 }
 
-// Dxyn - DRW Vx, Vy, nibble
 // Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
 
-// The interpreter reads n bytes from memory, starting at the address stored in I. 
-// These bytes are then displayed as sprites on screen at coordinates (Vx, Vy). 
-// Sprites are XORed onto the existing screen. 
-// If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0. 
-// If the sprite is positioned so part of it is outside the coordinates of the display, it wraps around to the opposite side of the screen. 
+// The interpreter reads n bytes from memory, starting at the address stored in I.
+// These bytes are then displayed as sprites on screen at coordinates (Vx, Vy).
+// Sprites are XORed onto the existing screen.
+// If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0.
+// If the sprite is positioned so part of it is outside the coordinates of the display, it wraps around to the opposite side of the screen.
 // See instruction 8xy3 for more information on XOR, and section 2.4, Display, for more information on the Chip-8 screen and sprites.
 
-
 //  DXYN, last. It’s the hardest, and nothing appears on screen until it’s done.
-
 
 void clear_scr(Chip8 *chip)
 {
