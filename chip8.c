@@ -56,7 +56,7 @@ void chip8_cycle(Chip8 *chip)
     chip->pc += 2;
 
     uint8_t x = ((opcode >> 8) & 0x0F); // each 0 adds 4 0's in end os hex
-    uint8_t y = ((opcode >> 4) & 0x00F0);
+    uint8_t y = ((opcode >> 4) & 0x000F);
     uint8_t n = opcode & 0x000F;
     uint8_t nn = opcode & 0x00FF;
     uint16_t nnn = opcode & 0x0FFF;
@@ -66,17 +66,59 @@ void chip8_cycle(Chip8 *chip)
     case 0:
         if (opcode == 0x00E0)
         {
-            memset(chip->display, 0, sizeof(chip->display));
-            chip->draw_flag = true;
+            clear_scr(chip);
         }
         else
         {
+            printf("Sorry darling i haven't implemented it yet\n");
         }
         break;
 
+    case 1:
+        // 1nnn - JP addr
+        //Jump to location nnn.set pc to nnn
+        chip->pc = nnn;
         break;
+        
+    case 6:
+        //  6XNN (Vx[x] = nn).
+        chip->Vx[x] = nn;
+    case 0xA: //10nnn
+    //  ANNN (I = nnn).
+        chip->I = nnn;
+
+    case 7:
+    // 7xkk - ADD Vx, byte
+    // Set Vx = Vx + kk.
+    chip->Vx[x] += nn;
+    
+    case 0xD:
+        uint16_t idk = chip->I;
+        //disply idk on Vx[x], Vy[y]
+            
+        
 
     default:
-        break;
-    }
+    break;
+}
+}
+
+// Dxyn - DRW Vx, Vy, nibble
+// Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+
+// The interpreter reads n bytes from memory, starting at the address stored in I. 
+// These bytes are then displayed as sprites on screen at coordinates (Vx, Vy). 
+// Sprites are XORed onto the existing screen. 
+// If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0. 
+// If the sprite is positioned so part of it is outside the coordinates of the display, it wraps around to the opposite side of the screen. 
+// See instruction 8xy3 for more information on XOR, and section 2.4, Display, for more information on the Chip-8 screen and sprites.
+
+
+//  DXYN, last. It’s the hardest, and nothing appears on screen until it’s done.
+
+
+void clear_scr(Chip8 *chip)
+{
+    memset(chip->display, 0, sizeof(chip->display));
+    chip->draw_flag = true;
 }

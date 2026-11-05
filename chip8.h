@@ -33,6 +33,7 @@ typedef struct
 
 void chip8_init(Chip8 *chip);
 void load_rom(const char *file_pt, Chip8 *chip); // use const char * instead of FILE *. as it more safe in some way
-void chip8_cycle();
+void chip8_cycle(Chip8 *chip);
+void clear_scr(Chip8 *chip);
 
 #endif
