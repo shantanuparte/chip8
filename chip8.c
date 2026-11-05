@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "chip8.h"
+#include "func.h"
 
 #define START_ADDR 0x200 // 512
 
@@ -68,10 +69,6 @@ void chip8_cycle(Chip8 *chip)
         {
             clear_scr(chip);
         }
-        else
-        {
-            printf("Sorry darling i haven't implemented it yet\n");
-        }
         break;
 
     case 0x1000:
@@ -80,68 +77,62 @@ void chip8_cycle(Chip8 *chip)
         chip->pc = nnn;
         break;
 
+    case 0x3000:
+        // x, nn
+        if (chip->Vx[x] == nn)
+        {
+            chip->pc += 2; // each itration is of 2
+        }
+        break;
+
+    case 0x4000:
+        // 4xkk
+        if (chip->Vx[x] != nn)
+        {
+            chip->pc += 2;
+        }
+        break;
+
+    case 0x5000:
+        // 5xy0
+        if (chip->Vx[x] == chip->Vx[y])
+        {
+            chip->pc += 2;
+        }
+        break;
     case 0x6000:
         //  6XNN (Vx[x] = nn).
         chip->Vx[x] = nn;
         break;
-    case 0xA000: // 10nnn
-        //  ANNN (I = nnn).
-        chip->I = nnn;
-        break;
-
     case 0x7000:
         // 7xkk - ADD Vx, byte
         // Set Vx = Vx + kk.
         chip->Vx[x] += nn;
         break;
 
-    case 0xD000: 
-    {
-        uint8_t x_coord = chip->Vx[x] ;  
-        uint8_t y_coord = chip->Vx[y] ;
-
-        //collision flag is F'th register
-        chip->Vx[0xF] = 0; // clear collision flag
-
-        for (int row = 0; row < n; row++)
+    case 0x9000:
+        if (chip->Vx[x] != chip->Vx[y])
         {
-            if (y_coord + row >= SCREEN_HEIGHT)
-                break; // clip at bottom edge
-
-            uint8_t sprite_byte = chip->mem[chip->I + row]; // read from memory
-            
-            for (int y = 0; y < 8; y++)
-            {
-                if (x_coord + y >= SCREEN_WIDTH)
-                    break; // clip at right edge
-
-                if (sprite_byte & (0x80 >> y)) //get the bit though biwise operation. if non zero do the operation
-                {
-                    int index = (y_coord + row) * SCREEN_WIDTH + (x_coord + y);
-
-                    if (chip->display[index]) // pixel already on -> collision
-                        chip->Vx[0xF] = 1;
-
-                    chip->display[index] ^= 1; //  XOR onto the display
-                }
-            }
+            chip->pc += 2;
         }
-
-        chip->draw_flag = true;
         break;
-    }
-    
+    case 0xA000: // 10nnn
+        //  ANNN (I = nnn).
+        chip->I = nnn;
+        break;
+
+    case 0xD000:
+        draw_sprite_on_screen(chip, x, y, n);
+        break;
 
     default:
         break;
     }
 }
 
-
 void clear_scr(Chip8 *chip)
 {
     memset(chip->display, 0, sizeof(chip->display));
     chip->draw_flag = true;
 }
-
 

@@ -7,6 +7,7 @@ int main()
 {
 
     Chip8 chip;
+    chip.stack_ptr = 0;
     chip8_init(&chip);
     load_rom("ibm.ch8", &chip);
 
@@ -17,7 +18,7 @@ int main()
     {
         for (int z = 0; z < 10; z++)
         {
-            //have to run this for 60Hz -> 60 x 10 is 600 instructions per seconds
+            // have to run this for 60Hz -> 60 x 10 is 600 instructions per seconds
             chip8_cycle(&chip);
         }
 
@@ -26,14 +27,10 @@ int main()
         BeginDrawing();
 
         draw_screen(&chip);
-        
+
         EndDrawing();
     }
 
     CloseWindow();
     return 0;
 }
-
-
-
-
