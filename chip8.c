@@ -83,14 +83,17 @@ void chip8_cycle(Chip8 *chip)
     case 0x6000:
         //  6XNN (Vx[x] = nn).
         chip->Vx[x] = nn;
+        break;
     case 0xA000: // 10nnn
         //  ANNN (I = nnn).
         chip->I = nnn;
+        break;
 
     case 0x7000:
         // 7xkk - ADD Vx, byte
         // Set Vx = Vx + kk.
         chip->Vx[x] += nn;
+        break;
 
     case 0xD000: 
     {
@@ -106,13 +109,13 @@ void chip8_cycle(Chip8 *chip)
                 break; // clip at bottom edge
 
             uint8_t sprite_byte = chip->mem[chip->I + row]; // read from memory
-
+            
             for (int y = 0; y < 8; y++)
             {
                 if (x_coord + y >= SCREEN_WIDTH)
                     break; // clip at right edge
 
-                if (sprite_byte & (0x80 >> y)) //get the bit though biwise operation
+                if (sprite_byte & (0x80 >> y)) //get the bit though biwise operation. if non zero do the operation
                 {
                     int index = (y_coord + row) * SCREEN_WIDTH + (x_coord + y);
 
@@ -127,25 +130,18 @@ void chip8_cycle(Chip8 *chip)
         chip->draw_flag = true;
         break;
     }
+    
 
     default:
         break;
     }
 }
 
-// Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
-
-// The interpreter reads n bytes from memory, starting at the address stored in I.
-// These bytes are then displayed as sprites on screen at coordinates (Vx, Vy).
-// Sprites are XORed onto the existing screen.
-// If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0.
-// If the sprite is positioned so part of it is outside the coordinates of the display, it wraps around to the opposite side of the screen.
-// See instruction 8xy3 for more information on XOR, and section 2.4, Display, for more information on the Chip-8 screen and sprites.
-
-//  DXYN, last. It’s the hardest, and nothing appears on screen until it’s done.
 
 void clear_scr(Chip8 *chip)
 {
     memset(chip->display, 0, sizeof(chip->display));
     chip->draw_flag = true;
 }
+
+
