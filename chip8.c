@@ -47,7 +47,7 @@ void load_rom(const char *file_pt, Chip8 *chip)
 void chip8_init(Chip8 *chip)
 {
     memset(chip, 0, sizeof(*chip)); // use *chip to deference or it'll size the pointer
-
+    srand(time(NULL));
     chip->pc = START_ADDR; // pc should start here
 }
 
@@ -73,6 +73,7 @@ void chip8_cycle(Chip8 *chip)
         else
         {
             // 00EE
+            chip->stack_ptr--;
             chip->pc = chip->stack[chip->stack_ptr];
         }
         break;
@@ -85,8 +86,8 @@ void chip8_cycle(Chip8 *chip)
 
     case 0x2000:
         // 2nnn->
-        chip->stack_ptr++;
         chip->stack[chip->stack_ptr] = chip->pc;
+        chip->stack_ptr++;
         chip->pc = nnn;
         break;
 
@@ -124,53 +125,47 @@ void chip8_cycle(Chip8 *chip)
         break;
 
     case 0x8000:
-        if (n == 0)
+        switch (n)
         {
+        case 0:
             chip->Vx[x] = chip->Vx[y];
-        }
-        else if (n == 1)
-        {
+            break;
+        case 1:
             chip->Vx[x] = chip->Vx[x] | chip->Vx[y];
-        }
-        else if (n == 2)
-        {
+            break;
+        case 2:
             chip->Vx[x] = chip->Vx[x] & chip->Vx[y];
-        }
-        else if (n == 3)
-        {
-            chip->Vx[x] = chip->Vx[x] ^ chip->Vx[y];
-        }
-        else if (n == 4)
-        {
-            uint16_t result = chip->Vx[x] + chip->Vx[y];
+            break;
+        case 3:
 
+            chip->Vx[x] = chip->Vx[x] ^ chip->Vx[y];
+            break;
+
+        case 4:
+            uint16_t result = chip->Vx[x] + chip->Vx[y];
             chip->Vx[x] = result & 0xFF;
             chip->Vx[0xF] = (result > 255); // 1 if correct and down not up
-        }
-        else if (n == 5)
-        {
+            break;
+        case 5:
             // do substraction even if Vy > Vx
+            chip->Vx[0xF] = (chip->Vx[x] >= chip->Vx[y]);
             chip->Vx[x] = chip->Vx[x] - chip->Vx[y];
-            chip->Vx[0xF] = (chip->Vx[x] > chip->Vx[y]);
-        }
-        else if (n == 6)
-        {
-            chip->Vx[0xF] = (chip->Vx[x] & 0x01);
-            chip->Vx[x] /= 2;
-        }
-        else if (n == 7)
-        {
+            break;
+        case 6:
+            chip->Vx[x] = chip->Vx[y] >> 1;
+            chip->Vx[0xF] = chip->Vx[y] & 0x01;
+            break;
+        case 7:
             chip->Vx[x] = chip->Vx[y] - chip->Vx[x];
-            chip->Vx[0xF] = (chip->Vx[x] < chip->Vx[y]);
-        }
-        else if (n == 0xE)
-        {
-            chip->Vx[0xF] = ((chip->Vx[x] >> 7) & 0x01);
-            chip->Vx[x] *= 2;
-        }
-        else
-        {
-            printf("What instructios are you sending lol\n");
+            chip->Vx[0xF] = (chip->Vx[y] >= chip->Vx[x]);
+            break;
+        case 0xE:
+            chip->Vx[x] = chip->Vx[y] << 1;
+            chip->Vx[0xF] = (chip->Vx[0xF] >> 7) & 0x01;
+            break;
+
+        default:
+            break;
         }
 
         break;
@@ -186,9 +181,7 @@ void chip8_cycle(Chip8 *chip)
         chip->I = nnn;
         break;
     case 0xC000:
-        srand(time(NULL));
-        uint16_t num = (rand() % (254 - 0 + 1)) + 0;
-        chip->Vx[x] = num&nn;
+        chip->Vx[x] = (rand() & 255) & nn;
         break;
     case 0xD000:
         draw_sprite_on_screen(chip, x, y, n);
@@ -226,6 +219,7 @@ void chip8_cycle(Chip8 *chip)
         }
 
     default:
+        break;
         break;
     }
 }
