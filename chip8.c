@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <time.h>
+#include <stdbool.h>
 #include "chip8.h"
 #include "func.h"
 
@@ -182,7 +183,7 @@ void chip8_cycle(Chip8 *chip)
         chip->I = nnn;
         break;
     case 0xB000:
-        chip->pc = (nnn+chip->Vx[0]);
+        chip->pc = (nnn + chip->Vx[0]);
         break;
     case 0xC000:
         chip->Vx[x] = (rand() & 255) & nn;
@@ -193,17 +194,42 @@ void chip8_cycle(Chip8 *chip)
     case 0xE000:
         if (nn == 0x9E)
         {
-            
-        }else if (nn == 0xA1)
-        {
-            
+            if (chip->keypad[chip->Vx[x]])
+            {
+                chip->pc += 2;
+            }
         }
-        
-        
+        else if (nn == 0xA1)
+        {
+            if (!(chip->keypad[chip->Vx[x]]))
+            {
+                chip->pc += 2;
+            }
+        }
+
         break;
     case 0xF000:
         switch (nn)
         {
+        case 0x0A:
+            // wait till which key is pressed
+
+            bool is_presed = false;
+            for (int i = 0; i < 16; i++)
+            {
+                if (chip->keypad[i])
+                {
+                    chip->Vx[x] = i;
+                    is_presed = true;
+                    break;
+                }
+            }
+            if (!is_presed)
+            {
+                chip->pc -= 2;
+            }
+
+            break;
         case 0x1E:
             chip->I += chip->Vx[x];
             break;

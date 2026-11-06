@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #define MEMORY_SIZE 4096
 #define SCREEN_HEIGHT 32
@@ -26,7 +27,7 @@ typedef struct
 
     // raylib to display later
     uint8_t display[SCREEN_HEIGHT * SCREEN_WIDTH]; // size of screen total 1984: two states 1-> on, 0-> off
-    uint8_t keypad[16];
+    bool keypad[16];
     bool draw_flag;
 
 } Chip8;

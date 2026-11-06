@@ -8,6 +8,6 @@
 
 
 void draw_screen(Chip8 *chip);
-
+void update_keypad(Chip8 *chip);
 
 #endif
