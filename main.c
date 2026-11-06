@@ -9,7 +9,7 @@ int main()
     Chip8 chip;
     chip.stack_ptr = 0;
     chip8_init(&chip);
-    load_rom("ibm.ch8", &chip);
+    load_rom("corax.ch8", &chip);
 
     InitWindow(64 * 10, 32 * 10, "CHIP-8");
     SetTargetFPS(60);

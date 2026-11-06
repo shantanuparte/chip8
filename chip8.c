@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <time.h>
 #include "chip8.h"
 #include "func.h"
 
@@ -152,6 +153,25 @@ void chip8_cycle(Chip8 *chip)
             chip->Vx[x] = chip->Vx[x] - chip->Vx[y];
             chip->Vx[0xF] = (chip->Vx[x] > chip->Vx[y]);
         }
+        else if (n == 6)
+        {
+            chip->Vx[0xF] = (chip->Vx[x] & 0x01);
+            chip->Vx[x] /= 2;
+        }
+        else if (n == 7)
+        {
+            chip->Vx[x] = chip->Vx[y] - chip->Vx[x];
+            chip->Vx[0xF] = (chip->Vx[x] < chip->Vx[y]);
+        }
+        else if (n == 0xE)
+        {
+            chip->Vx[0xF] = ((chip->Vx[x] >> 7) & 0x01);
+            chip->Vx[x] *= 2;
+        }
+        else
+        {
+            printf("What instructios are you sending lol\n");
+        }
 
         break;
 
@@ -165,10 +185,45 @@ void chip8_cycle(Chip8 *chip)
         //  ANNN (I = nnn).
         chip->I = nnn;
         break;
-
+    case 0xC000:
+        srand(time(NULL));
+        uint16_t num = (rand() % (254 - 0 + 1)) + 0;
+        chip->Vx[x] = num&nn;
+        break;
     case 0xD000:
         draw_sprite_on_screen(chip, x, y, n);
         break;
+    case 0xF000:
+        switch (nn)
+        {
+        case 0x1E:
+            chip->I += chip->Vx[x];
+            break;
+        case 0x33:
+            uint8_t num = chip->Vx[x];
+            for (int i = 2; i >= 0; i--)
+            {
+                chip->mem[chip->I + i] = num % 10;
+                num /= 10;
+            }
+            break;
+        case 0x55:
+            for (int i = 0; i <= x; i++) // equal cause till Vx
+            {
+                chip->mem[chip->I + i] = chip->Vx[i];
+            }
+
+            break;
+        case 0x65:
+            for (int i = 0; i <= x; i++)
+            {
+                chip->Vx[i] = chip->mem[chip->I + i];
+            }
+
+            break;
+        default:
+            break;
+        }
 
     default:
         break;
