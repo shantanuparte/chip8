@@ -7,6 +7,7 @@
 #include "func.h"
 
 #define START_ADDR 0x200 // 512
+#define FONT_START 0x050
 
 // symbol
 // int-> instruction operation
@@ -180,17 +181,35 @@ void chip8_cycle(Chip8 *chip)
         //  ANNN (I = nnn).
         chip->I = nnn;
         break;
+    case 0xB000:
+        chip->pc = (nnn+chip->Vx[0]);
+        break;
     case 0xC000:
         chip->Vx[x] = (rand() & 255) & nn;
         break;
     case 0xD000:
         draw_sprite_on_screen(chip, x, y, n);
         break;
+    case 0xE000:
+        if (nn == 0x9E)
+        {
+            
+        }else if (nn == 0xA1)
+        {
+            
+        }
+        
+        
+        break;
     case 0xF000:
         switch (nn)
         {
         case 0x1E:
             chip->I += chip->Vx[x];
+            break;
+        case 0x29:
+            uint16_t digit = chip->Vx[x];
+            chip->I = FONT_START + (chip->Vx[x] * 5);
             break;
         case 0x33:
             uint8_t num = chip->Vx[x];
@@ -212,7 +231,15 @@ void chip8_cycle(Chip8 *chip)
             {
                 chip->Vx[i] = chip->mem[chip->I + i];
             }
-
+            break;
+        case 0x07:
+            chip->Vx[x] = chip->timer;
+            break;
+        case 0x15:
+            chip->timer = chip->Vx[x];
+            break;
+        case 0x18:
+            chip->sound = chip->Vx[x];
             break;
         default:
             break;
