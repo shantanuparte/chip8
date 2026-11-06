@@ -69,11 +69,23 @@ void chip8_cycle(Chip8 *chip)
         {
             clear_scr(chip);
         }
+        else
+        {
+            // 00EE
+            chip->pc = chip->stack[chip->stack_ptr];
+        }
         break;
 
     case 0x1000:
         // 1nnn - JP addr
         // Jump to location nnn.set pc to nnn
+        chip->pc = nnn;
+        break;
+
+    case 0x2000:
+        // 2nnn->
+        chip->stack_ptr++;
+        chip->stack[chip->stack_ptr] = chip->pc;
         chip->pc = nnn;
         break;
 
@@ -110,6 +122,39 @@ void chip8_cycle(Chip8 *chip)
         chip->Vx[x] += nn;
         break;
 
+    case 0x8000:
+        if (n == 0)
+        {
+            chip->Vx[x] = chip->Vx[y];
+        }
+        else if (n == 1)
+        {
+            chip->Vx[x] = chip->Vx[x] | chip->Vx[y];
+        }
+        else if (n == 2)
+        {
+            chip->Vx[x] = chip->Vx[x] & chip->Vx[y];
+        }
+        else if (n == 3)
+        {
+            chip->Vx[x] = chip->Vx[x] ^ chip->Vx[y];
+        }
+        else if (n == 4)
+        {
+            uint16_t result = chip->Vx[x] + chip->Vx[y];
+
+            chip->Vx[x] = result & 0xFF;
+            chip->Vx[0xF] = (result > 255); // 1 if correct and down not up
+        }
+        else if (n == 5)
+        {
+            // do substraction even if Vy > Vx
+            chip->Vx[x] = chip->Vx[x] - chip->Vx[y];
+            chip->Vx[0xF] = (chip->Vx[x] > chip->Vx[y]);
+        }
+
+        break;
+
     case 0x9000:
         if (chip->Vx[x] != chip->Vx[y])
         {
@@ -135,4 +180,3 @@ void clear_scr(Chip8 *chip)
     memset(chip->display, 0, sizeof(chip->display));
     chip->draw_flag = true;
 }
-
