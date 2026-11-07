@@ -5,7 +5,7 @@
 #include <time.h>
 #include <stdbool.h>
 #include "chip8.h"
-#include "func.h"
+
 
 #define START_ADDR 0x200 // 512
 #define FONT_START 0x050
@@ -20,6 +20,25 @@
 // each instruction is 2byte long with 4 bits of each instruction with is
 // opcode register value value
 
+static const uint8_t fontset[80] = {
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
 void load_rom(const char *file_pt, Chip8 *chip)
 {
     // load file from 512 though doc says some start from 1536 but we'll see later
@@ -28,6 +47,7 @@ void load_rom(const char *file_pt, Chip8 *chip)
     if (!rom_file) // !file_ptr is more professional
     {
         printf("Error opning file\n");
+        fclose(rom_file);
         return;
     }
 
@@ -39,6 +59,7 @@ void load_rom(const char *file_pt, Chip8 *chip)
     if (file_size > (MEMORY_SIZE - START_ADDR))
     {
         printf("File is bigger than %d bits\n", (MEMORY_SIZE - START_ADDR));
+        fclose(rom_file);
         return;
     }
 
@@ -49,6 +70,7 @@ void load_rom(const char *file_pt, Chip8 *chip)
 void chip8_init(Chip8 *chip)
 {
     memset(chip, 0, sizeof(*chip)); // use *chip to deference or it'll size the pointer
+    memcpy(&chip->mem[FONT_START], fontset, sizeof(fontset));//copy to the memory address
     srand(time(NULL));
     chip->pc = START_ADDR; // pc should start here
 }
@@ -150,20 +172,21 @@ void chip8_cycle(Chip8 *chip)
             break;
         case 5:
             // do substraction even if Vy > Vx
-            chip->Vx[0xF] = (chip->Vx[x] >= chip->Vx[y]);
+            chip->Vx[0xF] = (chip->Vx[x] <= chip->Vx[y]);
             chip->Vx[x] = chip->Vx[x] - chip->Vx[y];
             break;
         case 6:
-            chip->Vx[x] = chip->Vx[y] >> 1;
-            chip->Vx[0xF] = chip->Vx[y] & 0x01;
+            chip->Vx[0xF] = chip->Vx[x] & 0x01;
+            chip->Vx[x] >>= 1;
             break;
         case 7:
-            chip->Vx[x] = chip->Vx[y] - chip->Vx[x];
+
             chip->Vx[0xF] = (chip->Vx[y] >= chip->Vx[x]);
+            chip->Vx[x] = chip->Vx[y] - chip->Vx[x];
             break;
         case 0xE:
-            chip->Vx[x] = chip->Vx[y] << 1;
-            chip->Vx[0xF] = (chip->Vx[0xF] >> 7) & 0x01;
+            chip->Vx[0xF] = (chip->Vx[x] >> 7) & 0x01;
+            chip->Vx[x] <<= 1;
             break;
 
         default:
@@ -189,8 +212,40 @@ void chip8_cycle(Chip8 *chip)
         chip->Vx[x] = (rand() & 255) & nn;
         break;
     case 0xD000:
-        draw_sprite_on_screen(chip, x, y, n);
-        break;
+    {
+        uint8_t x_coord = chip->Vx[x];
+        uint8_t y_coord = chip->Vx[y];
+
+        // collision flag is F'th register
+        chip->Vx[0xF] = 0; // clear collision flag
+
+        for (int row = 0; row < n; row++)
+        {
+            if (y_coord + row >= SCREEN_HEIGHT)
+                break; // clip at bottom edge
+
+            uint8_t sprite_byte = chip->mem[chip->I + row]; // read from memory
+
+            for (int y = 0; y < 8; y++)
+            {
+                if (x_coord + y >= SCREEN_WIDTH)
+                    break; // clip at right edge
+
+                if (sprite_byte & (0x80 >> y)) // get the bit though biwise operation. if non zero do the operation
+                {
+                    int index = (y_coord + row) * SCREEN_WIDTH + (x_coord + y);
+
+                    if (chip->display[index]) // pixel already on -> collision
+                        chip->Vx[0xF] = 1;
+
+                    chip->display[index] ^= 1; //  XOR onto the display
+                }
+            }
+        }
+
+        chip->draw_flag = true;
+    }
+    break;
     case 0xE000:
         if (nn == 0x9E)
         {
@@ -234,7 +289,6 @@ void chip8_cycle(Chip8 *chip)
             chip->I += chip->Vx[x];
             break;
         case 0x29:
-            uint16_t digit = chip->Vx[x];
             chip->I = FONT_START + (chip->Vx[x] * 5);
             break;
         case 0x33:
@@ -270,9 +324,8 @@ void chip8_cycle(Chip8 *chip)
         default:
             break;
         }
-
-    default:
         break;
+    default:
         break;
     }
 }
