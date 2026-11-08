@@ -3,7 +3,6 @@
 #include "raylib.h"
 #include <stdbool.h>
 
-
 #define MULTIPLIYER 10
 
 void draw_screen(Chip8 *chip)
@@ -27,7 +26,8 @@ void draw_screen(Chip8 *chip)
 // 7 8 9 E           A S D F
 // A 0 B F           Z X C V
 
-void update_keypad(Chip8 *chip){
+void update_keypad(Chip8 *chip)
+{
 
     chip->keypad[0x1] = IsKeyDown(KEY_ONE);
     chip->keypad[0x2] = IsKeyDown(KEY_TWO);

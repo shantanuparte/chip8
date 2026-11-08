@@ -38,6 +38,7 @@ static const uint8_t fontset[80] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
+
 void load_rom(const char *file_pt, Chip8 *chip)
 {
     // load file from 512 though doc says some start from 1536 but we'll see later
@@ -149,6 +150,7 @@ void chip8_cycle(Chip8 *chip)
 
     case 0x8000:
     {
+        // here used vx and vy as variaible cause we don't need changed values
         uint8_t vx = chip->Vx[x];
         uint8_t vy = chip->Vx[y];
 
@@ -335,8 +337,3 @@ void clear_scr(Chip8 *chip)
     memset(chip->display, 0, sizeof(chip->display));
     chip->draw_flag = true;
 }
-
-
-
-
-

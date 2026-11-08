@@ -3,13 +3,20 @@
 #include "raylib.h"
 #include "draw.h"
 
-int main()
+int main(int argc, char *argv[])
 {
+
+    if (argc < 2)
+    {
+        printf("Usage: %s <rom_path>\n", argv[0]);
+        printf("Example: %s roms/Airplane.ch8\n", argv[0]);
+        return 1;
+    }
 
     Chip8 chip;
     chip.stack_ptr = 0;
     chip8_init(&chip);
-    load_rom("Airplane.ch8", &chip);
+    load_rom(argv[1], &chip);
 
     InitWindow(64 * 10, 32 * 10, "CHIP-8");
     InitAudioDevice();
