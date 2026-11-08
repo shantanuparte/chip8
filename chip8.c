@@ -6,7 +6,6 @@
 #include <stdbool.h>
 #include "chip8.h"
 
-
 #define START_ADDR 0x200 // 512
 #define FONT_START 0x050
 
@@ -69,8 +68,8 @@ void load_rom(const char *file_pt, Chip8 *chip)
 
 void chip8_init(Chip8 *chip)
 {
-    memset(chip, 0, sizeof(*chip)); // use *chip to deference or it'll size the pointer
-    memcpy(&chip->mem[FONT_START], fontset, sizeof(fontset));//copy to the memory address
+    memset(chip, 0, sizeof(*chip));                           // use *chip to deference or it'll size the pointer
+    memcpy(&chip->mem[FONT_START], fontset, sizeof(fontset)); // copy to the memory address
     srand(time(NULL));
     chip->pc = START_ADDR; // pc should start here
 }
@@ -149,51 +148,52 @@ void chip8_cycle(Chip8 *chip)
         break;
 
     case 0x8000:
+    {
+        uint8_t vx = chip->Vx[x];
+        uint8_t vy = chip->Vx[y];
+
         switch (n)
         {
-        case 0:
-            chip->Vx[x] = chip->Vx[y];
+        case 0x0:
+            chip->Vx[x] = vy;
             break;
-        case 1:
-            chip->Vx[x] = chip->Vx[x] | chip->Vx[y];
+        case 0x1:
+            chip->Vx[x] = vx | vy;
             break;
-        case 2:
-            chip->Vx[x] = chip->Vx[x] & chip->Vx[y];
+        case 0x2:
+            chip->Vx[x] = vx & vy;
             break;
-        case 3:
-
-            chip->Vx[x] = chip->Vx[x] ^ chip->Vx[y];
+        case 0x3:
+            chip->Vx[x] = vx ^ vy;
             break;
-
-        case 4:
-            uint16_t result = chip->Vx[x] + chip->Vx[y];
-            chip->Vx[x] = result & 0xFF;
-            chip->Vx[0xF] = (result > 255); // 1 if correct and down not up
+        case 0x4:
+        {
+            uint16_t sum = vx + vy;
+            chip->Vx[x] = sum & 0xFF;
+            chip->Vx[0xF] = (sum > 255);
             break;
-        case 5:
-            // do substraction even if Vy > Vx
-            chip->Vx[0xF] = (chip->Vx[x] <= chip->Vx[y]);
-            chip->Vx[x] = chip->Vx[x] - chip->Vx[y];
+        }
+        case 0x5:
+            chip->Vx[x] = vx - vy;
+            chip->Vx[0xF] = (vx >= vy);
             break;
-        case 6:
-            chip->Vx[0xF] = chip->Vx[x] & 0x01;
-            chip->Vx[x] >>= 1;
+        case 0x6:
+            chip->Vx[x] = vx >> 1;
+            chip->Vx[0xF] = vx & 0x01;
             break;
-        case 7:
-
-            chip->Vx[0xF] = (chip->Vx[y] >= chip->Vx[x]);
-            chip->Vx[x] = chip->Vx[y] - chip->Vx[x];
+        case 0x7:
+            chip->Vx[x] = vy - vx;
+            chip->Vx[0xF] = (vy >= vx);
             break;
         case 0xE:
-            chip->Vx[0xF] = (chip->Vx[x] >> 7) & 0x01;
-            chip->Vx[x] <<= 1;
+            chip->Vx[x] = vx << 1;
+            chip->Vx[0xF] = (vx >> 7) & 0x01;
             break;
-
         default:
             break;
         }
-
         break;
+    }
 
     case 0x9000:
         if (chip->Vx[x] != chip->Vx[y])
@@ -335,3 +335,8 @@ void clear_scr(Chip8 *chip)
     memset(chip->display, 0, sizeof(chip->display));
     chip->draw_flag = true;
 }
+
+
+
+
+

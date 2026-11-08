@@ -3,8 +3,7 @@
 #include "raylib.h"
 #include <stdbool.h>
 
-#define SCREEN_HEIGHT 32
-#define SCREEN_WIDTH 64
+
 #define MULTIPLIYER 10
 
 void draw_screen(Chip8 *chip)
