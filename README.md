@@ -9,13 +9,20 @@ It is a cli based Chip 8 Emulator. Just pass the file path and get it working
 - Supports all machine codes of base chip-8 emulator
 - easy to use
 
-## Installations
+## Installation
 
-Only runs on linux, ૮(•͈⌔•͈)ა
-I have the beep.wav in the src for code to use. so the sound doens't get in game. 
+Download `chip8` from the
+[latest release](https://github.com/shantanuparte/chip8/releases/latest)
+and `beep.wav` and `Airplane.ch8` from
+[git repo](https://github.com/shantanuparte/chip8.git)
+and put all three in the same folder.
 
-Install binary directly [Dowdload for Linux](https://github.com/shantanuparte/chip8/releases/download/v1.0.0/chip8)
+```
+chmod +x chip8
+./chip8 Airplane.ch8
+```
 
+Linux only. The binary has raylib built in, so you don't need to install it.
 
 ## Usage
 
@@ -28,37 +35,45 @@ chmod +x chip8
 And run the binary
 
 ```
-./chip8 /path/to/chip8_file.chip8
+./chip8 /path/to/chip8_file.ch8
 ```
 
 ## Build from source (CMake)
 
-I have added a Airplane.ch8 game if you want to play
-
-Clone the repository:
+Fedora:
 
 ```
-git clone https://github.com/shantanuparte/chip8.git
-cd chip8
+sudo dnf install gcc cmake git mesa-libGL-devel libX11-devel libXrandr-devel \
+libXi-devel libXcursor-devel libXinerama-devel alsa-lib-devel
 ```
 
-Configure the project:
+Debian/Ubuntu:
 
 ```
-cmake -S . -B build
+sudo apt install build-essential cmake git libgl1-mesa-dev libx11-dev \
+libxrandr-dev libxi-dev libxcursor-dev libxinerama-dev libasound2-dev
 ```
 
-Build:
+Arch:
 
 ```
-cmake --build build
+sudo pacman -S base-devel cmake git mesa libx11 libxrandr libxi libxcursor libxinerama alsa-lib
 ```
 
-Run the emulator:
+```
+cmake -B build && cmake --build build
+./build/chip8 roms/Airplane.ch8
+```
 
-```
-./build/chip8 /path/to/chip8_file.chip8
-```
+## Prebuilt binary
+
+Keep `beep.wav` and `Airplane.ch8`in the same folder as `chip8` and run it from that folder:
+`./chip8 Airplane.ch8`
+
+## Controls
+
+CHIP-8 keypad `1 2 3 C / 4 5 6 D / 7 8 9 E / A 0 B F` maps to
+`1 2 3 4 / Q W E R / A S D F / Z X C V`.
 
 ## Project structure
 

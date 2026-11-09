@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
     InitWindow(64 * 10, 32 * 10, "CHIP-8");
     InitAudioDevice();
-    Sound beep = LoadSound("beep.wav");
+    Sound beep = LoadSound(TextFormat("%sbeep.wav", GetApplicationDirectory()));
     SetTargetFPS(60);
 
     while (!WindowShouldClose())
