@@ -93,6 +93,7 @@ If CMake fails, compile directly
 ```
 cd src
 gcc *.c -o chip8 -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+chmod +x chip8
 ./chip8 ../Airplane.ch8
 ```
 
